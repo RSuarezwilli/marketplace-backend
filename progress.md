@@ -49,7 +49,7 @@ como primer paso al recibir este entregable y reportar cualquier discrepancia.
 | HU-08 | Editar producto propio | 🟢 Sí | `ProductService.updateProduct` | `ProductService.test.js` (3 casos: éxito, no dueño, no existe) | 🟢 Esperado | 🟢 Sí |
 | HU-09 | Eliminar producto propio (soft delete) | 🟢 Sí | `ProductService.removeProduct`, `Product.remove()` | `ProductService.test.js` | 🟢 Esperado | 🟢 Sí |
 | HU-10 | Listar productos disponibles | 🟢 Sí | `ProductService.listAvailable` | `ProductService.test.js` (filtra por `status='available'`) | 🟢 Esperado | 🟢 Sí |
-| HU-11 | Listar productos propios (vendedor) | 🟡 Parcial | `ProductService.listBySeller`, `IProductRepository.listBySeller` | Cubierto indirectamente vía `InMemoryProductRepository`; falta test dedicado a nivel de controller/ruta | 🟡 Parcial | 🟡 Falta ruta HTTP |
+|| HU-11 | Listar productos propios (`GET /products/mine`) | 🟢 Sí | `ProductService.listBySeller`, `ProductController.listMine`, `productRoutes.js` | `ProductService.test.js` (caso dedicado: solo del vendedor consultado, incluye eliminados) | 🟢 Esperado (ver nota red) | 🟢 Sí |
 | HU-12 | Búsqueda por palabra clave | ⚪ No | — | — | — | ⚪ No aplica |
 | HU-13 | Filtro por rango de precio | ⚪ No | — | — | — | ⚪ No aplica |
 | HU-14 | Reservar producto | 🟡 Parcial | `Product.reserve()` | `Product.test.js` (2 casos: éxito y error de estado) | 🟢 Esperado (a nivel de entidad) | 🟡 Falta caso de uso/endpoint |

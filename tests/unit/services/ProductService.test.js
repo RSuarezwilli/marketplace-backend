@@ -136,4 +136,36 @@ describe('ProductService', () => {
     expect(available).toHaveLength(1);
     expect(available[0].title).toBe('Producto B');
   });
+
+  it('listBySeller() (HU-11) retorna solo los productos del vendedor indicado, sin importar su estado', async () => {
+    const otroVendedor = await userRepository.create(
+      User.fromSupabaseAuthPayload({
+        id: 'auth-seller-2',
+        email: 'otro-vendedor@example.com',
+        created_at: '2026-01-01T00:00:00.000Z'
+      })
+    );
+
+    const propio = await service.createProduct({
+      sellerId: seller.id,
+      title: 'Producto propio',
+      description: 'Este producto sí es del vendedor consultado',
+      price: 40,
+      stock: 2
+    });
+    await service.removeProduct(propio.id, seller.id); // incluso eliminado, debe aparecer en "mis productos"
+
+    await service.createProduct({
+      sellerId: otroVendedor.id,
+      title: 'Producto de otro vendedor',
+      description: 'Este NO debe aparecer en la lista del primer vendedor',
+      price: 60,
+      stock: 1
+    });
+
+    const misProductos = await service.listBySeller(seller.id);
+
+    expect(misProductos).toHaveLength(1);
+    expect(misProductos[0].title).toBe('Producto propio');
+  });
 });

@@ -9,7 +9,10 @@ class ProductController {
     this.update = this.update.bind(this);
     this.remove = this.remove.bind(this);
     this.listAvailable = this.listAvailable.bind(this);
-  }
+    this.listMine = this.listMine.bind(this); 
+}
+
+
 
   async create(req, res, next) {
     try {
@@ -47,6 +50,20 @@ class ProductController {
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
       const offset = req.query.offset ? Number(req.query.offset) : undefined;
       const products = await this.productService.listAvailable(limit, offset);
+      res.status(200).json(products);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async listMine(req, res, next) {
+    try {
+      const sellerId = req.header('x-user-id') || '';
+      if (!sellerId) {
+        res.status(401).json({ error: 'Falta el header x-user-id (marcador de posición de autenticación)' });
+        return;
+      }
+      const products = await this.productService.listBySeller(sellerId);
       res.status(200).json(products);
     } catch (err) {
       next(err);

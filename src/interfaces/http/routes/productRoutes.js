@@ -5,6 +5,7 @@ function buildProductRoutes(controller) {
   const router = Router();
 
   router.get('/', controller.listAvailable);
+  router.get('/mine', controller.listMine);
   router.post('/', controller.create);
   router.patch('/:id', controller.update);
   router.delete('/:id', controller.remove);

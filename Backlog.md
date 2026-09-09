@@ -150,7 +150,11 @@ un usuario (evento `user.deleted`),
 **quiero** ver todos mis productos, sin importar su estado,
 **para** administrar mi inventario.
 
-**Estado:** 🟡 Parcial — `ProductService.listBySeller` y el repositorio están implementados y probados a nivel de servicio; falta exponer la ruta HTTP (`GET /products/mine`).
+**Criterios de aceptación:**
+- `GET /products/mine` retorna todos los productos del vendedor autenticado, sin importar su `status` (incluye disponibles, reservados, vendidos y eliminados).
+- Nunca retorna productos de otro vendedor.
+
+**Estado:** 🟢 Implementada y probada.
 
 ---
 
