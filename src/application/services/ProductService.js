@@ -14,16 +14,14 @@ class UnauthorizedProductActionError extends Error {
   }
 }
 
-/**
- * ProductService: caso de uso para publicar y administrar productos.
- * Aplica control de propiedad (solo el vendedor dueño puede editar/eliminar),
- * delegando la persistencia al repositorio inyectado.
- */
+class InvalidProductStateError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'InvalidProductStateError';
+  }
+}
+
 class ProductService {
-  /**
-   * @param {import('../../domain/repositories/IProductRepository')} productRepository
-   * @param {import('../../domain/repositories/IUserRepository')} userRepository
-   */
   constructor(productRepository, userRepository) {
     this.productRepository = productRepository;
     this.userRepository = userRepository;
@@ -75,6 +73,31 @@ class ProductService {
   async listBySeller(sellerId) {
     return this.productRepository.listBySeller(sellerId);
   }
+
+  async reserveProduct(productId) {
+    const product = await this.productRepository.findById(productId);
+    if (!product) throw new ProductNotFoundError(productId);
+
+    try {
+      product.reserve();
+    } catch (domainError) {
+      throw new InvalidProductStateError(domainError.message);
+    }
+    return this.productRepository.update(product);
+  }
+
+  async sellProduct(productId, sellerId) {
+    const product = await this.productRepository.findById(productId);
+    if (!product) throw new ProductNotFoundError(productId);
+    if (product.sellerId !== sellerId) throw new UnauthorizedProductActionError();
+
+    try {
+      product.markSold();
+    } catch (domainError) {
+      throw new InvalidProductStateError(domainError.message);
+    }
+    return this.productRepository.update(product);
+  }
 }
 
-module.exports = { ProductService, ProductNotFoundError, UnauthorizedProductActionError };
+module.exports = { ProductService, ProductNotFoundError, UnauthorizedProductActionError, InvalidProductStateError };

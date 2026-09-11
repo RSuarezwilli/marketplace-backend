@@ -1,7 +1,8 @@
 const {
   ProductService,
   ProductNotFoundError,
-  UnauthorizedProductActionError
+  UnauthorizedProductActionError,
+  InvalidProductStateError
 } = require('../../../src/application/services/ProductService');
 const { InMemoryProductRepository } = require('../doubles/InMemoryProductRepository');
 const { InMemoryUserRepository } = require('../doubles/InMemoryUserRepository');
@@ -153,7 +154,7 @@ describe('ProductService', () => {
       price: 40,
       stock: 2
     });
-    await service.removeProduct(propio.id, seller.id); // incluso eliminado, debe aparecer en "mis productos"
+    await service.removeProduct(propio.id, seller.id);
 
     await service.createProduct({
       sellerId: otroVendedor.id,
@@ -167,5 +168,75 @@ describe('ProductService', () => {
 
     expect(misProductos).toHaveLength(1);
     expect(misProductos[0].title).toBe('Producto propio');
+  });
+
+  it('reserveProduct() (HU-14) reserva un producto disponible', async () => {
+    const product = await service.createProduct({
+      sellerId: seller.id,
+      title: 'Guitarra acústica',
+      description: 'Guitarra en excelente estado, poco uso',
+      price: 200,
+      stock: 1
+    });
+
+    const reservado = await service.reserveProduct(product.id);
+    expect(reservado.status).toBe('reserved');
+  });
+
+  it('reserveProduct() (HU-14) lanza InvalidProductStateError si el producto ya no está disponible', async () => {
+    const product = await service.createProduct({
+      sellerId: seller.id,
+      title: 'Amplificador',
+      description: 'Amplificador de guitarra de 50W',
+      price: 150,
+      stock: 1
+    });
+    await service.reserveProduct(product.id);
+
+    await expect(service.reserveProduct(product.id)).rejects.toBeInstanceOf(InvalidProductStateError);
+  });
+
+  it('reserveProduct() (HU-14) lanza ProductNotFoundError si el producto no existe', async () => {
+    await expect(service.reserveProduct('no-existe')).rejects.toBeInstanceOf(ProductNotFoundError);
+  });
+
+  it('sellProduct() (HU-15) marca como vendido cuando lo hace el dueño', async () => {
+    const product = await service.createProduct({
+      sellerId: seller.id,
+      title: 'Consola de videojuegos',
+      description: 'Consola con dos controles incluidos',
+      price: 900,
+      stock: 1
+    });
+
+    const vendido = await service.sellProduct(product.id, seller.id);
+    expect(vendido.status).toBe('sold');
+  });
+
+  it('sellProduct() (HU-15) impide marcar como vendido a quien no es el dueño', async () => {
+    const product = await service.createProduct({
+      sellerId: seller.id,
+      title: 'Monitor',
+      description: 'Monitor 24 pulgadas Full HD',
+      price: 300,
+      stock: 1
+    });
+
+    await expect(service.sellProduct(product.id, 'otro-vendedor')).rejects.toBeInstanceOf(
+      UnauthorizedProductActionError
+    );
+  });
+
+  it('sellProduct() (HU-15) lanza InvalidProductStateError si el producto fue eliminado', async () => {
+    const product = await service.createProduct({
+      sellerId: seller.id,
+      title: 'Impresora',
+      description: 'Impresora láser monocromática',
+      price: 250,
+      stock: 1
+    });
+    await service.removeProduct(product.id, seller.id);
+
+    await expect(service.sellProduct(product.id, seller.id)).rejects.toBeInstanceOf(InvalidProductStateError);
   });
 });

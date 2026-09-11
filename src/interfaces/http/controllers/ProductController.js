@@ -9,6 +9,8 @@ class ProductController {
     this.remove = this.remove.bind(this);
     this.listAvailable = this.listAvailable.bind(this);
     this.listMine = this.listMine.bind(this);
+    this.reserve = this.reserve.bind(this);
+    this.sell = this.sell.bind(this);
   }
 
   async create(req, res, next) {
@@ -56,6 +58,24 @@ class ProductController {
     try {
       const products = await this.productService.listBySeller(req.currentUser.id);
       res.status(200).json(products);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async reserve(req, res, next) {
+    try {
+      const product = await this.productService.reserveProduct(req.params.id);
+      res.status(200).json(product);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async sell(req, res, next) {
+    try {
+      const product = await this.productService.sellProduct(req.params.id, req.currentUser.id);
+      res.status(200).json(product);
     } catch (err) {
       next(err);
     }
