@@ -5,6 +5,7 @@ const {
   InvalidProductStateError
 } = require('../../../application/services/ProductService');
 const { UserNotFoundError } = require('../../../application/services/UserProfileService');
+const { SellerNotFoundError, CannotReviewSelfError } = require('../../../application/services/ReviewService');
 
 function errorHandler(err, _req, res, _next) {
   if (err instanceof ZodError) {
@@ -29,6 +30,16 @@ function errorHandler(err, _req, res, _next) {
 
   if (err instanceof UserNotFoundError) {
     res.status(404).json({ error: err.message });
+    return;
+  }
+
+  if (err instanceof SellerNotFoundError) {
+    res.status(404).json({ error: err.message });
+    return;
+  }
+
+  if (err instanceof CannotReviewSelfError) {
+    res.status(400).json({ error: err.message });
     return;
   }
 

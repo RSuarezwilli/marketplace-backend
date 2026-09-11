@@ -66,8 +66,8 @@ class ProductService {
     await this.productRepository.update(product);
   }
 
-  async listAvailable(limit, offset) {
-    return this.productRepository.listAvailable(limit, offset);
+  async listAvailable(filters) {
+    return this.productRepository.listAvailable(filters);
   }
 
   async listBySeller(sellerId) {

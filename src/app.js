@@ -6,15 +6,19 @@ const rateLimit = require('express-rate-limit');
 const { createSupabaseAdminClient } = require('./infrastructure/supabase/SupabaseClient');
 const { SupabaseUserRepository } = require('./infrastructure/repositories/SupabaseUserRepository');
 const { SupabaseProductRepository } = require('./infrastructure/repositories/SupabaseProductRepository');
+const { SupabaseReviewRepository } = require('./infrastructure/repositories/SupabaseReviewRepository');
 const { UserSyncService } = require('./application/services/UserSyncService');
 const { ProductService } = require('./application/services/ProductService');
 const { UserProfileService } = require('./application/services/UserProfileService');
+const { ReviewService } = require('./application/services/ReviewService');
 const { AuthWebhookController } = require('./interfaces/http/controllers/AuthWebhookController');
 const { ProductController } = require('./interfaces/http/controllers/ProductController');
 const { UserController } = require('./interfaces/http/controllers/UserController');
+const { ReviewController } = require('./interfaces/http/controllers/ReviewController');
 const { buildWebhookRoutes } = require('./interfaces/http/routes/webhookRoutes');
 const { buildProductRoutes } = require('./interfaces/http/routes/productRoutes');
 const { buildUserRoutes } = require('./interfaces/http/routes/userRoutes');
+const { buildSellerRoutes } = require('./interfaces/http/routes/sellerRoutes');
 const { errorHandler } = require('./interfaces/http/middlewares/errorHandler');
 const { requireAuth } = require('./interfaces/http/middlewares/requireAuth');
 
@@ -35,14 +39,17 @@ function buildApp(env) {
   const supabase = createSupabaseAdminClient(env);
   const userRepository = new SupabaseUserRepository(supabase);
   const productRepository = new SupabaseProductRepository(supabase);
+  const reviewRepository = new SupabaseReviewRepository(supabase);
 
   const userSyncService = new UserSyncService(userRepository);
   const productService = new ProductService(productRepository, userRepository);
   const userProfileService = new UserProfileService(userRepository);
+  const reviewService = new ReviewService(reviewRepository, userRepository);
 
   const authWebhookController = new AuthWebhookController(userSyncService);
   const productController = new ProductController(productService);
   const userController = new UserController(userProfileService);
+  const reviewController = new ReviewController(reviewService);
 
   const auth = requireAuth(supabase, userRepository);
 
@@ -53,6 +60,7 @@ function buildApp(env) {
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
   app.use('/products', buildProductRoutes(productController, auth));
   app.use('/users', buildUserRoutes(userController, auth));
+  app.use('/sellers', buildSellerRoutes(reviewController, auth));
 
   app.use(errorHandler);
 

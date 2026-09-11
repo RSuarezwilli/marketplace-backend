@@ -44,8 +44,23 @@ class InMemoryProductRepository {
     return Array.from(this.products.values()).filter((p) => p.sellerId === sellerId);
   }
 
-  async listAvailable() {
-    return Array.from(this.products.values()).filter((p) => p.status === 'available');
+  async listAvailable(filters = {}) {
+    const { q, minPrice, maxPrice } = filters;
+
+    return Array.from(this.products.values()).filter((p) => {
+      if (p.status !== 'available') return false;
+
+      if (q) {
+        const needle = q.toLowerCase();
+        const matches = p.title.toLowerCase().includes(needle) || p.description.toLowerCase().includes(needle);
+        if (!matches) return false;
+      }
+
+      if (minPrice !== undefined && p.price < minPrice) return false;
+      if (maxPrice !== undefined && p.price > maxPrice) return false;
+
+      return true;
+    });
   }
 }
 

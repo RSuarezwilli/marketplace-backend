@@ -45,9 +45,15 @@ class ProductController {
 
   async listAvailable(req, res, next) {
     try {
-      const limit = req.query.limit ? Number(req.query.limit) : undefined;
-      const offset = req.query.offset ? Number(req.query.offset) : undefined;
-      const products = await this.productService.listAvailable(limit, offset);
+      const { limit, offset, q, minPrice, maxPrice } = req.query;
+      const filters = {
+        limit: limit ? Number(limit) : undefined,
+        offset: offset ? Number(offset) : undefined,
+        q: q ? String(q) : undefined,
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined
+      };
+      const products = await this.productService.listAvailable(filters);
       res.status(200).json(products);
     } catch (err) {
       next(err);

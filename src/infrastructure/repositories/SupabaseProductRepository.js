@@ -2,10 +2,6 @@ const { Product } = require('../../domain/entities/Product');
 
 const TABLE = 'products';
 
-/**
- * @param {any} row
- * @returns {Product}
- */
 function rowToEntity(row) {
   return new Product(
     row.id,
@@ -21,7 +17,6 @@ function rowToEntity(row) {
 }
 
 class SupabaseProductRepository {
-  /** @param {import('@supabase/supabase-js').SupabaseClient} client */
   constructor(client) {
     this.client = client;
   }
@@ -85,13 +80,19 @@ class SupabaseProductRepository {
     return data.map(rowToEntity);
   }
 
-  async listAvailable(limit = 20, offset = 0) {
-    const { data, error } = await this.client
-      .from(TABLE)
-      .select('*')
-      .eq('status', 'available')
-      .range(offset, offset + limit - 1)
-      .order('created_at', { ascending: false });
+  async listAvailable(filters = {}) {
+    const { limit = 20, offset = 0, q, minPrice, maxPrice } = filters;
+
+    let query = this.client.from(TABLE).select('*').eq('status', 'available');
+
+    if (q) {
+      query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+    }
+
+    if (minPrice !== undefined) query = query.gte('price', minPrice);
+    if (maxPrice !== undefined) query = query.lte('price', maxPrice);
+
+    const { data, error } = await query.range(offset, offset + limit - 1).order('created_at', { ascending: false });
 
     if (error) throw new Error(`Error listando productos disponibles: ${error.message}`);
     return data.map(rowToEntity);
