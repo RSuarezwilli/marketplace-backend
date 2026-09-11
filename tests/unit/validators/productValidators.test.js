@@ -2,7 +2,6 @@ const { createProductSchema, updateProductSchema } = require('../../../src/appli
 
 describe('createProductSchema', () => {
   const valid = {
-    sellerId: '11111111-1111-1111-1111-111111111111',
     title: 'Producto válido',
     description: 'Una descripción suficientemente larga',
     price: 10,
@@ -24,10 +23,6 @@ describe('createProductSchema', () => {
 
   it('rechaza título demasiado corto', () => {
     expect(() => createProductSchema.parse({ ...valid, title: 'ab' })).toThrow();
-  });
-
-  it('rechaza sellerId que no es UUID', () => {
-    expect(() => createProductSchema.parse({ ...valid, sellerId: 'no-uuid' })).toThrow();
   });
 });
 

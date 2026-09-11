@@ -1,10 +1,9 @@
 const { Router } = require('express');
 
-/** @param {import('../controllers/UserController').UserController} controller */
-function buildUserRoutes(controller) {
+function buildUserRoutes(controller, requireAuth) {
   const router = Router();
 
-  router.get('/me', controller.me);
+  router.get('/me', requireAuth, controller.me);
 
   return router;
 }

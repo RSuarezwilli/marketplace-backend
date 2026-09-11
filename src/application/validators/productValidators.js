@@ -1,7 +1,6 @@
 const { z } = require('zod');
 
 const createProductSchema = z.object({
-  sellerId: z.string().uuid(),
   title: z.string().trim().min(3).max(120),
   description: z.string().trim().min(10).max(2000),
   price: z.number().positive(),

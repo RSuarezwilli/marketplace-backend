@@ -16,14 +16,8 @@ const { buildWebhookRoutes } = require('./interfaces/http/routes/webhookRoutes')
 const { buildProductRoutes } = require('./interfaces/http/routes/productRoutes');
 const { buildUserRoutes } = require('./interfaces/http/routes/userRoutes');
 const { errorHandler } = require('./interfaces/http/middlewares/errorHandler');
+const { requireAuth } = require('./interfaces/http/middlewares/requireAuth');
 
-/**
- * Composition root: aquí se conectan (inyectan) todas las dependencias
- * concretas sobre los contratos del dominio. Mantener este ensamblado
- * en un único lugar facilita sustituir infraestructura (p.ej. en tests
- * de integración) sin tocar la lógica de negocio.
- * @param {ReturnType<typeof import('./config/env').loadEnv>} env
- */
 function buildApp(env) {
   const app = express();
 
@@ -50,14 +44,15 @@ function buildApp(env) {
   const productController = new ProductController(productService);
   const userController = new UserController(userProfileService);
 
-  // Ruta de webhook ANTES del json() global, porque necesita el body crudo.
+  const auth = requireAuth(supabase, userRepository);
+
   app.use('/webhooks', buildWebhookRoutes(authWebhookController, env));
 
   app.use(express.json({ limit: '1mb' }));
 
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
-  app.use('/products', buildProductRoutes(productController));
-  app.use('/users', buildUserRoutes(userController));
+  app.use('/products', buildProductRoutes(productController, auth));
+  app.use('/users', buildUserRoutes(userController, auth));
 
   app.use(errorHandler);
 

@@ -8,8 +8,8 @@
  * JWT de Supabase (`Authorization: Bearer <token>`) y derive el
  * `authUserId` desde ahí, nunca de un header no verificado por el cliente.
  */
+
 class UserController {
-  /** @param {import('../../../application/services/UserProfileService').UserProfileService} userProfileService */
   constructor(userProfileService) {
     this.userProfileService = userProfileService;
     this.me = this.me.bind(this);
@@ -17,15 +17,8 @@ class UserController {
 
   async me(req, res, next) {
     try {
-      const authUserId = req.header('x-user-id') || '';
-      if (!authUserId) {
-        res.status(401).json({ error: 'Falta el header x-user-id (marcador de posición de autenticación)' });
-        return;
-      }
+      const user = await this.userProfileService.getOwnProfile(req.currentUser.authUserId);
 
-      const user = await this.userProfileService.getOwnProfile(authUserId);
-
-      // Se expone solo lo necesario: nunca se filtran campos internos de más.
       res.status(200).json({
         id: user.id,
         email: user.email,
