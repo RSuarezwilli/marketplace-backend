@@ -67,3 +67,53 @@ Este proyecto usa **CommonJS** (`require` / `module.exports`), el estilo de
 módulos más tradicional de Node.js, en lugar de `import`/`export` (ES Modules)
 o TypeScript. Es la forma más simple de escribir JavaScript en Node sin
 configuración adicional.
+
+## Endpoints principales
+
+> Autenticación (registro/login) gestionada directamente por **Supabase Auth**;
+> este backend sincroniza los usuarios vía webhook (ver sección de Webhooks).
+
+### Salud del servicio
+
+| Método | Ruta | Auth requerida | Descripción |
+|--------|------|:---:|-------------|
+| GET | /health | No | Verifica que el servicio esté activo |
+
+### Productos
+
+| Método | Ruta | Auth requerida | Descripción |
+|--------|------|:---:|-------------|
+| GET | /products | No | Lista los productos disponibles |
+| GET | /products/mine | Sí | Lista los productos publicados por el usuario autenticado |
+| POST | /products | Sí | Crea un nuevo producto |
+| PATCH | /products/:id | Sí | Actualiza un producto |
+| PATCH | /products/:id/reserve | Sí | Marca un producto como reservado |
+| PATCH | /products/:id/sell | Sí | Marca un producto como vendido |
+| DELETE | /products/:id | Sí | Elimina un producto |
+
+### Usuarios
+
+| Método | Ruta | Auth requerida | Descripción |
+|--------|------|:---:|-------------|
+| GET | /users/me | Sí | Obtiene el perfil del usuario autenticado |
+
+### Vendedores / Reseñas
+
+| Método | Ruta | Auth requerida | Descripción |
+|--------|------|:---:|-------------|
+| POST | /sellers/:sellerId/reviews | Sí | Crea una reseña para un vendedor |
+| GET | /sellers/:sellerId/reviews | No | Lista las reseñas de un vendedor |
+| GET | /sellers/:sellerId/rating | No | Obtiene la calificación promedio de un vendedor |
+
+### Webhooks (integración con Supabase Auth)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | /webhooks/supabase/auth | Recibe eventos de creación/actualización/eliminación de usuarios desde Supabase, con verificación de firma (Svix) |
+
+## Seguridad y buenas prácticas
+
+- **Helmet** para cabeceras HTTP seguras
+- **CORS** habilitado
+- **Rate limiting** configurable por variables de entorno
+- Verificación de firma en webhooks (evita solicitudes falsificadas)
